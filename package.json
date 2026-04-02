@@ -21,5 +21,8 @@
   "devDependencies": {
     "@types/leaflet": "^1.9.21",
     "@types/nodemailer": "^7.0.11"
+  },
+  "engines": {
+    "node": "22.*"
   }
 }

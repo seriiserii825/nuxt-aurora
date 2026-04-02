@@ -18,7 +18,7 @@ function scrollToContact() {
 
     <!-- ═══ HEADER ═══ -->
     <header class="bg-[#d32f2f] py-3 flex items-center justify-center">
-      <h1 class="text-white tracking-[0.3em] font-bold text-2xl font-[Georgia,serif]">AURORA</h1>
+      <img :src="'/img/logo.svg'" alt="Aurora" class="h-8" />
     </header>
 
     <!-- ═══ HERO ═══ -->
