@@ -1,8 +1,27 @@
 <script setup lang="ts">
+import { z } from "zod";
+
 const props = defineProps<{
   formType: "hero" | "contact";
   darkBg?: boolean;
 }>();
+
+const baseSchema = z.object({
+  nome: z.string().min(1, "Il nome è obbligatorio"),
+  cognome: z.string().min(1, "Il cognome è obbligatorio"),
+  email: z.string().min(1, "L'email è obbligatoria").email("Email non valida"),
+  telefono: z
+    .string()
+    .min(1, "Il telefono è obbligatorio")
+    .refine((v) => /^[+\d\s\-().]{6,20}$/.test(v), "Numero non valido"),
+  messaggio: z.string().min(1, "Il messaggio è obbligatorio"),
+  privacy: z.literal(true, { errorMap: () => ({ message: "Devi accettare la privacy policy" }) }),
+});
+
+const contactSchema = baseSchema.extend({
+  tipologia: z.string().min(1, "La tipologia è obbligatoria"),
+  indirizzo: z.string().min(1, "L'indirizzo è obbligatorio"),
+});
 
 const form = reactive({
   nome: "",
@@ -15,16 +34,26 @@ const form = reactive({
   privacy: false,
 });
 
+const fieldErrors = reactive<Record<string, string>>({});
 const loading = ref(false);
 const success = ref(false);
-const error = ref("");
+const submitError = ref("");
 
 async function submit() {
-  if (!form.privacy) {
-    error.value = "Devi accettare la privacy policy per continuare.";
+  Object.keys(fieldErrors).forEach((k) => delete fieldErrors[k]);
+  submitError.value = "";
+
+  const schema = props.formType === "contact" ? contactSchema : baseSchema;
+  const result = schema.safeParse({ ...form, privacy: form.privacy });
+
+  if (!result.success) {
+    result.error.issues.forEach((e) => {
+      const field = e.path[0] as string;
+      if (!fieldErrors[field]) fieldErrors[field] = e.message;
+    });
     return;
   }
-  error.value = "";
+
   loading.value = true;
   try {
     await $fetch("/api/send", {
@@ -43,7 +72,7 @@ async function submit() {
       privacy: false,
     });
   } catch {
-    error.value = "Errore durante l'invio. Riprova più tardi.";
+    submitError.value = "Errore durante l'invio. Riprova più tardi.";
   } finally {
     loading.value = false;
   }
@@ -67,30 +96,46 @@ onMounted(() => {
     if (el && !el.contains(e.target as Node)) dropdownOpen.value = false;
   });
 });
+
+defineExpose({ submit });
 </script>
 
 <template>
-  <form @submit.prevent="submit" class="space-y-2.5">
+  <div class="space-y-2.5">
     <!-- Nome + Cognome -->
     <div class="grid grid-cols-2 gap-2.5">
-      <input v-model="form.nome" :class="inputClass" type="text" placeholder="Nome" required />
-      <input v-model="form.cognome" :class="inputClass" type="text" placeholder="Cognome" />
+      <div class="flex flex-col gap-0.5">
+        <input v-model="form.nome" :class="inputClass" type="text" name="nome" placeholder="Nome" />
+        <span v-if="fieldErrors.nome" class="field-error">{{ fieldErrors.nome }}</span>
+      </div>
+      <div class="flex flex-col gap-0.5">
+        <input v-model="form.cognome" :class="inputClass" type="text" name="cognome" placeholder="Cognome" />
+        <span v-if="fieldErrors.cognome" class="field-error">{{ fieldErrors.cognome }}</span>
+      </div>
     </div>
 
     <!-- Email + Telefono -->
     <div class="grid grid-cols-2 gap-2.5">
-      <input v-model="form.email" :class="inputClass" type="email" placeholder="Email" required />
-      <input
-        v-model="form.telefono"
-        :class="inputClass"
-        type="text"
-        inputmode="tel"
-        placeholder="Telefono" />
+      <div class="flex flex-col gap-0.5">
+        <input v-model="form.email" :class="inputClass" type="email" name="email" placeholder="Email" />
+        <span v-if="fieldErrors.email" class="field-error">{{ fieldErrors.email }}</span>
+      </div>
+      <div class="flex flex-col gap-0.5">
+        <input
+          v-model="form.telefono"
+          :class="inputClass"
+          type="text"
+          name="telefono"
+          inputmode="tel"
+          placeholder="Telefono" />
+        <span v-if="fieldErrors.telefono" class="field-error">{{ fieldErrors.telefono }}</span>
+      </div>
     </div>
 
     <!-- Tipologia + Indirizzo (solo form contatto) -->
     <div v-if="formType === 'contact'" class="grid grid-cols-2 gap-2.5">
       <!-- Custom dropdown -->
+      <div class="flex flex-col gap-0.5">
       <div class="custom-select-wrap" :class="darkBg ? 'field-dark' : 'field-hero'">
         <button
           type="button"
@@ -123,30 +168,42 @@ onMounted(() => {
           </li>
         </ul>
       </div>
-      <input
-        v-model="form.indirizzo"
-        :class="inputClass"
-        type="text"
-        placeholder="Indirizzo dell'Immobile" />
+      <span v-if="fieldErrors.tipologia" class="field-error">{{ fieldErrors.tipologia }}</span>
+      </div>
+      <div class="flex flex-col gap-0.5">
+        <input
+          v-model="form.indirizzo"
+          :class="inputClass"
+          type="text"
+          name="indirizzo"
+          placeholder="Indirizzo dell'Immobile" />
+        <span v-if="fieldErrors.indirizzo" class="field-error">{{ fieldErrors.indirizzo }}</span>
+      </div>
     </div>
 
     <!-- Messaggio -->
-    <textarea
-      v-model="form.messaggio"
-      :class="inputClass + ' resize-none'"
-      rows="3"
-      placeholder="Descrivi brevemente il tuo immobile (metratura, numero locali, stato, ecc.)"
-      required />
+    <div class="flex flex-col gap-0.5">
+      <textarea
+        v-model="form.messaggio"
+        :class="inputClass + ' resize-none'"
+        name="messaggio"
+        rows="3"
+        placeholder="Descrivi brevemente il tuo immobile (metratura, numero locali, stato, ecc.)" />
+      <span v-if="fieldErrors.messaggio" class="field-error">{{ fieldErrors.messaggio }}</span>
+    </div>
 
     <!-- Privacy + Submit -->
     <div class="flex items-center justify-between gap-3 flex-wrap pt-1">
-      <label class="flex items-center gap-2.5 cursor-pointer">
-        <input v-model="form.privacy" type="radio" class="custom-radio" :value="true" />
-        <span class="text-xs leading-tight" :class="darkBg ? 'text-white/70' : 'text-white/60'">
-          Cliccando su invia dichiari di aver preso visione e di accettare la nostra
-          <a href="/privacy" class="underline hover:text-white">privacy policy</a>
-        </span>
-      </label>
+      <div class="flex flex-col gap-0.5">
+        <label class="flex items-center gap-2.5 cursor-pointer">
+          <input v-model="form.privacy" type="radio" name="privacy" class="custom-radio" :value="true" />
+          <span class="text-xs leading-tight" :class="darkBg ? 'text-white/70' : 'text-white/60'">
+            Cliccando su invia dichiari di aver preso visione e di accettare la nostra
+            <a href="/privacy" class="underline hover:text-white">privacy policy</a>
+          </span>
+        </label>
+        <span v-if="fieldErrors.privacy" class="field-error">{{ fieldErrors.privacy }}</span>
+      </div>
       <button type="submit" :disabled="loading" class="submit-btn">
         {{ loading ? "Invio..." : "Invia" }}
         <span class="submit-icon">
@@ -164,11 +221,11 @@ onMounted(() => {
       </button>
     </div>
 
-    <p v-if="error" class="text-red-300 text-xs">{{ error }}</p>
+    <p v-if="submitError" class="text-red-300 text-xs">{{ submitError }}</p>
     <p v-if="success" class="text-green-300 text-sm font-semibold">
       Messaggio inviato con successo!
     </p>
-  </form>
+  </div>
 </template>
 
 <style scoped>
@@ -291,6 +348,13 @@ onMounted(() => {
 }
 .custom-radio:checked::after {
   background: #fff;
+}
+
+/* Field errors */
+.field-error {
+  font-size: 0.7rem;
+  color: rgba(252, 165, 165, 0.9);
+  line-height: 1;
 }
 
 /* Submit button */

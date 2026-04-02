@@ -1,3 +1,7 @@
+<script setup lang="ts">
+const formRef = useTemplateRef("formRef");
+</script>
+
 <template>
   <!-- ═══ HERO ═══ -->
   <section class="relative flex items-center justify-center min-h-screen overflow-hidden">
@@ -31,10 +35,11 @@
       </p>
 
       <!-- Dark panel: CTA + Form -->
-      <div
+      <form
         id="hero-form"
         class="w-full max-w-3xl p-5 rounded-sm"
-        style="background: rgba(47, 47, 47, 0.8)">
+        style="background: rgba(47, 47, 47, 0.8)"
+        @submit.prevent="formRef?.submit()">
         <!-- CTA row (prima riga del pannello) -->
         <div class="grid grid-cols-2 gap-2.5 mb-2.5">
           <a
@@ -46,8 +51,8 @@
         </div>
 
         <!-- Form fields -->
-        <ContactForm form-type="hero" />
-      </div>
+        <ContactForm ref="formRef" form-type="hero" />
+      </form>
     </div>
   </section>
 </template>

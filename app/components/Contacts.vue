@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import PhoneNumber from "./PhoneNumber.vue";
+
+const formRef = useTemplateRef("formRef");
 </script>
 
 <template>
@@ -13,11 +15,13 @@ import PhoneNumber from "./PhoneNumber.vue";
     </div>
 
     <!-- Form -->
-    <div class="bg-[#d32f2f] p-8 lg:p-12 flex flex-col justify-center">
+    <form
+      class="bg-[#d32f2f] p-8 lg:p-12 flex flex-col justify-center"
+      @submit.prevent="formRef?.submit()">
       <h2 class="mb-2 text-3xl font-bold text-white">Contattaci</h2>
       <p class="mb-8 text-sm text-white/80">Compila il modulo per chiedere maggiori informazioni</p>
-      <ContactForm class="mb-8" form-type="contact" dark-bg />
+      <ContactForm ref="formRef" class="mb-8" form-type="contact" dark-bg />
       <PhoneNumber :dark="true" />
-    </div>
+    </form>
   </section>
 </template>
