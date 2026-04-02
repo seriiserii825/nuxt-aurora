@@ -1,3 +1,7 @@
+<script setup lang="ts">
+import PhoneNumber from "./PhoneNumber.vue";
+</script>
+
 <template>
   <!-- ═══ CONTATTACI ═══ -->
   <section id="contattaci" class="grid grid-cols-1 lg:grid-cols-2">
@@ -10,9 +14,10 @@
 
     <!-- Form -->
     <div class="bg-[#d32f2f] p-8 lg:p-12 flex flex-col justify-center">
-      <h2 class="text-white text-3xl font-bold mb-2">Contattaci</h2>
-      <p class="text-white/80 mb-8 text-sm">Compila il modulo per chiedere maggiori informazioni</p>
+      <h2 class="mb-2 text-3xl font-bold text-white">Contattaci</h2>
+      <p class="mb-8 text-sm text-white/80">Compila il modulo per chiedere maggiori informazioni</p>
       <ContactForm form-type="contact" dark-bg />
+      <PhoneNumber :dark="true" />
     </div>
   </section>
 </template>
