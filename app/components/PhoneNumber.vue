@@ -6,7 +6,7 @@ const props = defineProps({
   },
 });
 
-const defaultClasses = "flex items-center justify-center text-sm font-semibold gap-2 text-white py-2 mt-8";
+const defaultClasses = "flex items-center justify-center text-sm font-semibold gap-2 text-white py-2";
 
 const styles = {
   background: props.dark ? "rgba(47, 47, 47, 0.1)" : "rgba(0, 0, 0, 0.1)",
