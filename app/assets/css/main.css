@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+@theme {
+  --color-aurora-red: #d32f2f;
+  --color-aurora-red-dark: #b71c1c;
+  --font-family-heading: 'Georgia', serif;
+}
