@@ -42,27 +42,27 @@ async function submit() {
 
 const inputClass = computed(() =>
   props.darkBg
-    ? 'bg-transparent border-b border-white/50 text-white placeholder-white/60 focus:border-white focus:outline-none py-2 px-1 w-full text-sm'
-    : 'bg-[#1a1a2e]/60 border border-white/20 text-white placeholder-white/50 focus:border-white/60 focus:outline-none rounded py-2 px-3 w-full text-sm'
+    ? 'form-field field-dark'
+    : 'form-field field-hero'
 )
 </script>
 
 <template>
-  <form @submit.prevent="submit" class="space-y-3">
+  <form @submit.prevent="submit" class="space-y-2.5">
     <!-- Nome + Cognome -->
-    <div class="grid grid-cols-2 gap-3">
+    <div class="grid grid-cols-2 gap-2.5">
       <input v-model="form.nome" :class="inputClass" type="text" placeholder="Nome" required />
       <input v-model="form.cognome" :class="inputClass" type="text" placeholder="Cognome" />
     </div>
 
     <!-- Email + Telefono -->
-    <div class="grid grid-cols-2 gap-3">
+    <div class="grid grid-cols-2 gap-2.5">
       <input v-model="form.email" :class="inputClass" type="email" placeholder="Email" required />
-      <input v-model="form.telefono" :class="inputClass" type="tel" placeholder="Telefono" />
+      <input v-model="form.telefono" :class="inputClass" type="text" inputmode="tel" placeholder="Telefono" />
     </div>
 
     <!-- Tipologia + Indirizzo (solo form contatto) -->
-    <div v-if="formType === 'contact'" class="grid grid-cols-2 gap-3">
+    <div v-if="formType === 'contact'" class="grid grid-cols-2 gap-2.5">
       <select v-model="form.tipologia" :class="inputClass">
         <option value="" disabled>Tipologia di Immobile</option>
         <option>Residenziale</option>
@@ -76,16 +76,16 @@ const inputClass = computed(() =>
     <textarea
       v-model="form.messaggio"
       :class="inputClass + ' resize-none'"
-      rows="4"
+      rows="3"
       placeholder="Descrivi brevemente il tuo immobile (metratura, numero locali, stato, ecc.)"
       required
     />
 
     <!-- Privacy + Submit -->
-    <div class="flex items-center justify-between gap-3 flex-wrap">
-      <label class="flex items-start gap-2 cursor-pointer">
-        <input v-model="form.privacy" type="checkbox" class="mt-0.5 accent-[#d32f2f]" />
-        <span class="text-xs" :class="darkBg ? 'text-white/70' : 'text-white/60'">
+    <div class="flex items-center justify-between gap-3 flex-wrap pt-1">
+      <label class="flex items-center gap-2.5 cursor-pointer">
+        <input v-model="form.privacy" type="radio" class="custom-radio" :value="true" />
+        <span class="text-xs leading-tight" :class="darkBg ? 'text-white/70' : 'text-white/60'">
           Cliccando su invia dichiari di aver preso visione e di accettare la nostra
           <a href="/privacy" class="underline hover:text-white">privacy policy</a>
         </span>
@@ -93,14 +93,102 @@ const inputClass = computed(() =>
       <button
         type="submit"
         :disabled="loading"
-        class="flex items-center gap-2 bg-[#d32f2f] hover:bg-[#b71c1c] disabled:opacity-60 text-white text-sm font-semibold px-5 py-2 rounded-full transition-colors whitespace-nowrap"
+        class="submit-btn"
       >
         {{ loading ? 'Invio...' : 'Invia' }}
-        <span class="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-xs">→</span>
+        <span class="submit-icon">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/>
+          </svg>
+        </span>
       </button>
     </div>
 
-    <p v-if="error" class="text-red-300 text-sm">{{ error }}</p>
+    <p v-if="error" class="text-red-300 text-xs">{{ error }}</p>
     <p v-if="success" class="text-green-300 text-sm font-semibold">Messaggio inviato con successo!</p>
   </form>
 </template>
+
+<style scoped>
+.form-field {
+  width: 100%;
+  font-size: 0.8125rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.field-hero {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 2px;
+}
+.field-hero::placeholder { color: rgba(255,255,255,0.45); }
+.field-hero:focus { border-color: rgba(255,255,255,0.35); }
+
+.field-dark {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,0.4);
+  color: #fff;
+  padding: 6px 4px;
+  border-radius: 0;
+}
+.field-dark::placeholder { color: rgba(255,255,255,0.5); }
+.field-dark:focus { border-bottom-color: rgba(255,255,255,0.8); }
+
+/* Custom radio */
+.custom-radio {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 15px;
+  height: 15px;
+  border: 2px solid rgba(255,255,255,0.55);
+  border-radius: 50%;
+  flex-shrink: 0;
+  cursor: pointer;
+  position: relative;
+}
+.custom-radio::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  background: transparent;
+  transition: background 0.15s;
+}
+.custom-radio:checked::after {
+  background: #fff;
+}
+
+/* Submit button */
+.submit-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #d32f2f;
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  padding: 7px 16px 7px 20px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.submit-btn:hover { background: #b71c1c; }
+.submit-btn:disabled { opacity: 0.6; cursor: default; }
+
+.submit-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.25);
+  flex-shrink: 0;
+}
+</style>
