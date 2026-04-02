@@ -44,5 +44,26 @@ export default defineEventHandler(async (event) => {
     html,
   })
 
+  const confirmationHtml = `
+    <h2>Grazie per averci contattato, ${nome}!</h2>
+    <p>Abbiamo ricevuto la tua richiesta e ti risponderemo il prima possibile.</p>
+    <p>Di seguito il riepilogo del tuo messaggio:</p>
+    <table style="border-collapse:collapse;width:100%">
+      <tr><td style="padding:8px;border:1px solid #ddd"><strong>Nome</strong></td><td style="padding:8px;border:1px solid #ddd">${nome} ${cognome ?? ''}</td></tr>
+      <tr><td style="padding:8px;border:1px solid #ddd"><strong>Email</strong></td><td style="padding:8px;border:1px solid #ddd">${email}</td></tr>
+      <tr><td style="padding:8px;border:1px solid #ddd"><strong>Telefono</strong></td><td style="padding:8px;border:1px solid #ddd">${telefono ?? '—'}</td></tr>
+      ${tipologia ? `<tr><td style="padding:8px;border:1px solid #ddd"><strong>Tipologia</strong></td><td style="padding:8px;border:1px solid #ddd">${tipologia}</td></tr>` : ''}
+      ${indirizzo ? `<tr><td style="padding:8px;border:1px solid #ddd"><strong>Indirizzo</strong></td><td style="padding:8px;border:1px solid #ddd">${indirizzo}</td></tr>` : ''}
+      <tr><td style="padding:8px;border:1px solid #ddd"><strong>Messaggio</strong></td><td style="padding:8px;border:1px solid #ddd">${messaggio}</td></tr>
+    </table>
+  `
+
+  await transporter.sendMail({
+    from: config.smtpFrom,
+    to: email,
+    subject: 'Abbiamo ricevuto la tua richiesta',
+    html: confirmationHtml,
+  })
+
   return { success: true }
 })

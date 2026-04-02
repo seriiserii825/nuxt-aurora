@@ -172,7 +172,7 @@ defineExpose({ submit });
     </div>
 
     <!-- Tipologia + Indirizzo (solo form contatto) -->
-    <div v-if="formType === 'contact'" class="grid grid-cols-2 gap-2.5">
+    <div v-if="formType === 'contact'" class="grid grid-cols-2 gap-2.5 relative z-20">
       <!-- Custom dropdown -->
       <div class="flex flex-col gap-0.5">
         <div
@@ -239,7 +239,7 @@ defineExpose({ submit });
     </div>
 
     <!-- Privacy + Submit -->
-    <div class="flex items-center justify-between gap-3 flex-wrap pt-1">
+    <div class="flex flex-wrap items-center justify-between pt-1 gap-3">
       <div class="flex flex-col gap-0.5">
         <label class="flex items-center gap-2.5 cursor-pointer">
           <input v-model="form.privacy" type="checkbox" name="privacy" class="custom-radio" />
@@ -291,8 +291,8 @@ defineExpose({ submit });
       </button>
     </div>
 
-    <p v-if="submitError" class="text-red-300 text-xs">{{ submitError }}</p>
-    <p v-if="success" class="text-green-300 text-sm font-semibold">
+    <p v-if="submitError" class="text-xs text-red-300">{{ submitError }}</p>
+    <p v-if="success" class="text-sm font-semibold text-green-300">
       Messaggio inviato con successo!
     </p>
   </div>
@@ -372,7 +372,7 @@ defineExpose({ submit });
   top: calc(100% + 6px);
   left: 0;
   right: 0;
-  background: rgba(47, 47, 47, 0.1);
+  background: rgba(47, 47, 47);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 4px;
   z-index: 50;
