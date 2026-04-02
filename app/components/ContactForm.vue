@@ -152,12 +152,15 @@ const inputClass = computed(() =>
 }
 
 .field-dark {
-  background: transparent;
   border: none;
   border-bottom: 1px solid rgba(255, 255, 255, 0.4);
   color: #fff;
   padding: 6px 4px;
+  background: rgba(47, 47, 47, 0.1);
   border-radius: 0;
+}
+select.field-dark {
+  background: rgba(47, 47, 47, 0.1);
 }
 .field-dark::placeholder {
   color: rgba(255, 255, 255, 0.5);
