@@ -52,6 +52,21 @@ async function submit() {
 const inputClass = computed(() =>
   props.darkBg ? "form-field field-dark" : "form-field field-hero",
 );
+
+const dropdownOpen = ref(false);
+const tipologiaOptions = ["Residenziale", "Commerciale", "Terreno"];
+
+function selectTipologia(val: string) {
+  form.tipologia = val;
+  dropdownOpen.value = false;
+}
+
+onMounted(() => {
+  document.addEventListener("click", (e) => {
+    const el = document.querySelector(".custom-select-wrap");
+    if (el && !el.contains(e.target as Node)) dropdownOpen.value = false;
+  });
+});
 </script>
 
 <template>
@@ -75,12 +90,39 @@ const inputClass = computed(() =>
 
     <!-- Tipologia + Indirizzo (solo form contatto) -->
     <div v-if="formType === 'contact'" class="grid grid-cols-2 gap-2.5">
-      <select v-model="form.tipologia" :class="inputClass">
-        <option value="" disabled>Tipologia di Immobile</option>
-        <option>Residenziale</option>
-        <option>Commerciale</option>
-        <option>Terreno</option>
-      </select>
+      <!-- Custom dropdown -->
+      <div class="custom-select-wrap" :class="darkBg ? 'field-dark' : 'field-hero'">
+        <button
+          type="button"
+          class="custom-select-trigger"
+          :class="form.tipologia ? '' : 'placeholder'"
+          @click="dropdownOpen = !dropdownOpen">
+          {{ form.tipologia || "Tipologia di Immobile" }}
+          <svg
+            class="chevron"
+            :class="{ open: dropdownOpen }"
+            viewBox="0 0 10 6"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M1 1l4 4 4-4"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+        </button>
+        <ul v-if="dropdownOpen" class="custom-select-dropdown">
+          <li
+            v-for="opt in tipologiaOptions"
+            :key="opt"
+            class="custom-select-option"
+            :class="{ selected: form.tipologia === opt }"
+            @click="selectTipologia(opt)">
+            {{ opt }}
+          </li>
+        </ul>
+      </div>
       <input
         v-model="form.indirizzo"
         :class="inputClass"
@@ -159,14 +201,72 @@ const inputClass = computed(() =>
   background: rgba(47, 47, 47, 0.1);
   border-radius: 0;
 }
-select.field-dark {
-  background: rgba(47, 47, 47, 0.1);
-}
 .field-dark::placeholder {
   color: rgba(255, 255, 255, 0.5);
 }
 .field-dark:focus {
   border-bottom-color: rgba(255, 255, 255, 0.8);
+}
+
+/* Custom dropdown */
+.custom-select-wrap {
+  position: relative;
+  cursor: pointer;
+}
+.custom-select-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 0.8125rem;
+  font-family: inherit;
+  padding: 0;
+  cursor: pointer;
+  outline: none;
+}
+.custom-select-trigger.placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+.chevron {
+  width: 10px;
+  height: 6px;
+  flex-shrink: 0;
+  transition: transform 0.15s;
+  opacity: 0.7;
+}
+.chevron.open {
+  transform: rotate(180deg);
+}
+.custom-select-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: rgba(47, 47, 47, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  z-index: 50;
+  overflow: hidden;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.custom-select-option {
+  padding: 8px 12px;
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.custom-select-option:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.custom-select-option.selected {
+  color: #fff;
+  font-weight: 600;
 }
 
 /* Custom radio */
