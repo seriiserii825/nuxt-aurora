@@ -21,7 +21,7 @@
 
     <!-- Content -->
     <div
-      class="relative z-10 w-full max-w-3xl mx-auto px-6 py-16 flex flex-col items-center text-center">
+      class="relative z-10 w-full max-w-5xl mx-auto px-6 py-16 flex flex-col items-center text-center">
       <h2 class="text-white text-4xl lg:text-5xl font-black leading-tight mb-4 w-full">
         Hai un immobile o un terreno da vendere?
       </h2>
@@ -31,9 +31,12 @@
       </p>
 
       <!-- Dark panel: CTA + Form -->
-      <div id="hero-form" class="w-full rounded-sm p-5" style="background: rgba(10, 13, 28, 0.88)">
+      <div
+        id="hero-form"
+        class="w-full max-w-3xl rounded-sm p-5"
+        style="background: rgba(47, 47, 47, 0.8)">
         <!-- CTA row (prima riga del pannello) -->
-        <div class="flex items-center gap-3 mb-4 flex-wrap">
+        <div class="grid grid-cols-2 gap-2.5 mb-2.5">
           <a
             href="#hero-form"
             class="bg-[#d32f2f] hover:bg-[#b71c1c] text-white font-bold px-6 py-2.5 rounded transition-colors text-sm">
@@ -41,7 +44,8 @@
           </a>
           <a
             href="tel:0422411596"
-            class="flex items-center gap-2 text-white font-semibold text-sm hover:text-white/80">
+            class="flex items-center justify-center gap-2 text-white font-semibold text-sm hover:text-white/80"
+            style="background: rgba(255, 255, 255, 0.1)">
             <span
               class="w-8 h-8 rounded-full border border-white/50 flex items-center justify-center shrink-0">
               <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
