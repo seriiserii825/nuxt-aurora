@@ -35,6 +35,7 @@ const form = reactive({
 });
 
 const fieldErrors = reactive<Record<string, string>>({});
+const touched = new Set<string>();
 const loading = ref(false);
 const success = ref(false);
 const submitError = ref("");
@@ -50,6 +51,7 @@ async function submit() {
     result.error.issues.forEach((e) => {
       const field = e.path[0] as string;
       if (!fieldErrors[field]) fieldErrors[field] = e.message;
+      touched.add(field);
     });
     return;
   }
@@ -61,6 +63,10 @@ async function submit() {
       body: { ...form, formType: props.formType },
     });
     success.value = true;
+    touched.clear();
+    setTimeout(() => {
+      success.value = false;
+    }, 4000);
     Object.assign(form, {
       nome: "",
       cognome: "",
@@ -85,9 +91,23 @@ const inputClass = computed(() =>
 const dropdownOpen = ref(false);
 const tipologiaOptions = ["Residenziale", "Commerciale", "Terreno"];
 
+function validateField(field: string) {
+  if (!touched.has(field)) return;
+  const schema = props.formType === "contact" ? contactSchema : baseSchema;
+  const fieldSchema = (schema.shape as Record<string, z.ZodTypeAny>)[field];
+  if (!fieldSchema) return;
+  const result = fieldSchema.safeParse(form[field as keyof typeof form]);
+  if (result.success) {
+    delete fieldErrors[field];
+  } else {
+    fieldErrors[field] = result.error.issues[0]?.message ?? "";
+  }
+}
+
 function selectTipologia(val: string) {
   form.tipologia = val;
   dropdownOpen.value = false;
+  validateField("tipologia");
 }
 
 onMounted(() => {
@@ -105,11 +125,23 @@ defineExpose({ submit });
     <!-- Nome + Cognome -->
     <div class="grid grid-cols-2 gap-2.5">
       <div class="flex flex-col gap-0.5">
-        <input v-model="form.nome" :class="inputClass" type="text" name="nome" placeholder="Nome" />
+        <input
+          v-model="form.nome"
+          :class="[inputClass, { 'field-error-border': fieldErrors.nome }]"
+          type="text"
+          name="nome"
+          placeholder="Nome"
+          @input="validateField('nome')" />
         <span v-if="fieldErrors.nome" class="field-error">{{ fieldErrors.nome }}</span>
       </div>
       <div class="flex flex-col gap-0.5">
-        <input v-model="form.cognome" :class="inputClass" type="text" name="cognome" placeholder="Cognome" />
+        <input
+          v-model="form.cognome"
+          :class="[inputClass, { 'field-error-border': fieldErrors.cognome }]"
+          type="text"
+          name="cognome"
+          placeholder="Cognome"
+          @input="validateField('cognome')" />
         <span v-if="fieldErrors.cognome" class="field-error">{{ fieldErrors.cognome }}</span>
       </div>
     </div>
@@ -117,17 +149,24 @@ defineExpose({ submit });
     <!-- Email + Telefono -->
     <div class="grid grid-cols-2 gap-2.5">
       <div class="flex flex-col gap-0.5">
-        <input v-model="form.email" :class="inputClass" type="email" name="email" placeholder="Email" />
+        <input
+          v-model="form.email"
+          :class="[inputClass, { 'field-error-border': fieldErrors.email }]"
+          type="email"
+          name="email"
+          placeholder="Email"
+          @input="validateField('email')" />
         <span v-if="fieldErrors.email" class="field-error">{{ fieldErrors.email }}</span>
       </div>
       <div class="flex flex-col gap-0.5">
         <input
           v-model="form.telefono"
-          :class="inputClass"
+          :class="[inputClass, { 'field-error-border': fieldErrors.telefono }]"
           type="text"
           name="telefono"
           inputmode="tel"
-          placeholder="Telefono" />
+          placeholder="Telefono"
+          @input="validateField('telefono')" />
         <span v-if="fieldErrors.telefono" class="field-error">{{ fieldErrors.telefono }}</span>
       </div>
     </div>
@@ -136,47 +175,53 @@ defineExpose({ submit });
     <div v-if="formType === 'contact'" class="grid grid-cols-2 gap-2.5">
       <!-- Custom dropdown -->
       <div class="flex flex-col gap-0.5">
-      <div class="custom-select-wrap" :class="darkBg ? 'field-dark' : 'field-hero'">
-        <button
-          type="button"
-          class="custom-select-trigger"
-          :class="form.tipologia ? '' : 'placeholder'"
-          @click="dropdownOpen = !dropdownOpen">
-          {{ form.tipologia || "Tipologia di Immobile" }}
-          <svg
-            class="chevron"
-            :class="{ open: dropdownOpen }"
-            viewBox="0 0 10 6"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M1 1l4 4 4-4"
-              stroke="currentColor"
-              stroke-width="1.5"
-              stroke-linecap="round"
-              stroke-linejoin="round" />
-          </svg>
-        </button>
-        <ul v-if="dropdownOpen" class="custom-select-dropdown">
-          <li
-            v-for="opt in tipologiaOptions"
-            :key="opt"
-            class="custom-select-option"
-            :class="{ selected: form.tipologia === opt }"
-            @click="selectTipologia(opt)">
-            {{ opt }}
-          </li>
-        </ul>
-      </div>
-      <span v-if="fieldErrors.tipologia" class="field-error">{{ fieldErrors.tipologia }}</span>
+        <div
+          class="custom-select-wrap"
+          :class="[
+            darkBg ? 'field-dark' : 'field-hero',
+            { 'field-error-border': fieldErrors.tipologia },
+          ]">
+          <button
+            type="button"
+            class="custom-select-trigger"
+            :class="form.tipologia ? '' : 'placeholder'"
+            @click="dropdownOpen = !dropdownOpen">
+            {{ form.tipologia || "Tipologia di Immobile" }}
+            <svg
+              class="chevron"
+              :class="{ open: dropdownOpen }"
+              viewBox="0 0 10 6"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M1 1l4 4 4-4"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+          </button>
+          <ul v-if="dropdownOpen" class="custom-select-dropdown">
+            <li
+              v-for="opt in tipologiaOptions"
+              :key="opt"
+              class="custom-select-option"
+              :class="{ selected: form.tipologia === opt }"
+              @click="selectTipologia(opt)">
+              {{ opt }}
+            </li>
+          </ul>
+        </div>
+        <span v-if="fieldErrors.tipologia" class="field-error">{{ fieldErrors.tipologia }}</span>
       </div>
       <div class="flex flex-col gap-0.5">
         <input
           v-model="form.indirizzo"
-          :class="inputClass"
+          :class="[inputClass, { 'field-error-border': fieldErrors.indirizzo }]"
           type="text"
           name="indirizzo"
-          placeholder="Indirizzo dell'Immobile" />
+          placeholder="Indirizzo dell'Immobile"
+          @input="validateField('indirizzo')" />
         <span v-if="fieldErrors.indirizzo" class="field-error">{{ fieldErrors.indirizzo }}</span>
       </div>
     </div>
@@ -185,8 +230,9 @@ defineExpose({ submit });
     <div class="flex flex-col gap-0.5">
       <textarea
         v-model="form.messaggio"
-        :class="inputClass + ' resize-none'"
+        :class="[inputClass, 'resize-none', { 'field-error-border': fieldErrors.messaggio }]"
         name="messaggio"
+        @input="validateField('messaggio')"
         rows="3"
         placeholder="Descrivi brevemente il tuo immobile (metratura, numero locali, stato, ecc.)" />
       <span v-if="fieldErrors.messaggio" class="field-error">{{ fieldErrors.messaggio }}</span>
@@ -196,7 +242,7 @@ defineExpose({ submit });
     <div class="flex items-center justify-between gap-3 flex-wrap pt-1">
       <div class="flex flex-col gap-0.5">
         <label class="flex items-center gap-2.5 cursor-pointer">
-          <input v-model="form.privacy" type="radio" name="privacy" class="custom-radio" :value="true" />
+          <input v-model="form.privacy" type="checkbox" name="privacy" class="custom-radio" />
           <span class="text-xs leading-tight" :class="darkBg ? 'text-white/70' : 'text-white/60'">
             Cliccando su invia dichiari di aver preso visione e di accettare la nostra
             <a href="/privacy" class="underline hover:text-white">privacy policy</a>
@@ -204,10 +250,34 @@ defineExpose({ submit });
         </label>
         <span v-if="fieldErrors.privacy" class="field-error">{{ fieldErrors.privacy }}</span>
       </div>
-      <button type="submit" :disabled="loading" class="submit-btn">
+      <button type="submit" :disabled="!form.privacy || loading || success" class="submit-btn">
         {{ loading ? "Invio..." : "Invia" }}
         <span class="submit-icon">
+          <!-- Spinner while loading -->
           <svg
+            v-if="loading"
+            class="spinner"
+            viewBox="0 0 18 18"
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18">
+            <circle
+              cx="9"
+              cy="9"
+              r="7"
+              stroke="rgba(255,255,255,0.3)"
+              stroke-width="2"
+              fill="none" />
+            <path
+              d="M9 2a7 7 0 0 1 7 7"
+              stroke="white"
+              stroke-width="2"
+              fill="none"
+              stroke-linecap="round" />
+          </svg>
+          <!-- Arrow icon when idle -->
+          <svg
+            v-else
             xmlns="http://www.w3.org/2000/svg"
             width="18"
             height="18"
@@ -350,6 +420,23 @@ defineExpose({ submit });
   background: #fff;
 }
 
+/* Spinner */
+.spinner {
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error border on inputs */
+.field-error-border,
+.field-error-border.field-hero,
+.field-error-border.field-dark {
+  border-color: rgba(252, 165, 165, 0.8) !important;
+}
+
 /* Field errors */
 .field-error {
   font-size: 0.7rem;
@@ -376,8 +463,16 @@ defineExpose({ submit });
   background: #b71c1c;
 }
 .submit-btn:disabled {
-  opacity: 0.6;
-  cursor: default;
+  opacity: 1;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.4);
+}
+.submit-btn:disabled .submit-icon {
+  background: rgba(255, 255, 255, 0.1);
+}
+.submit-btn:disabled .submit-icon svg path {
+  fill: rgba(255, 255, 255, 0.4);
 }
 
 .submit-icon {
